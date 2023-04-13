@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Business Card</title>
+    <meta name="description" content="Sample digital business card generator"/>
+    <meta property="og:image" content="sitepreview.png"/>
+    <link rel="shortcut icon" type="image/png" href="Hooker Hill.png" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.0/dist/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+
+<body>
+
+<!--
+<div class="form-container" id="myForm">
+  <h2>Digital Business Card</h2><hr>
+  <h3>Thank you for expressing interest in Digital Business Card.
+    To personalize your own card,
+    please purchase and download the app from the Google Play Store:
+  </h3>
+  <h3><a href="https://play.google.com/store/apps/details?id=card.digitalbusinesscard" target="_blank">HERE</a></h3>
+    <hr>
+    <a href="https://play.google.com/store/apps/dev?id=4957396816342892948"><img src="Hooker Hill2.png" width="100%"></a>
+</div>
+  -->
+
+<div class="form-container" id="myForm">
+    <h2>Details Form</h2>
+    <hr />
+    <br />
+    <form method="POST">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required />
+
+        <label for="job">Title:</label>
+        <input type="text" id="job" name="job" required />
+
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" name="phone" required />
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required />
+
+        <div>
+            <label for="social1">Link 1:</label>
+            <input type="text" id="social1-label" name="social1-label" placeholder="Label:" required />
+            <input type="url" id="social1" name="social1" value="https://" required />
+        </div>
+
+        <div>
+            <label for="social2">Link 2:</label>
+            <input type="text" id="social2-label" name="social2-label" placeholder="Label:" required />
+            <input type="url" id="social2" name="social2" value="https://" required />
+        </div>
+
+        <div>
+            <label for="social3">Link 3:</label>
+            <input type="text" id="social3-label" name="social3-label" placeholder="Label:"/>
+            <input type="url" id="social3" name="social3" value="https://"/>
+        </div>
+
+        <div>
+            <label for="social4">Link 4:</label>
+            <input type="text" id="social4-label" name="social4-label" placeholder="Label:"/>
+            <input type="url" id="social4" name="social4" value="https://"/>
+        </div>
+
+        <input type="submit" value="Submit" id="submit-btn" />
+
+    </form>
+</div>
+
+<div class="stuff">
+    <div class="qr">
+        <h3>Take a screenshot!</h3>
+        <br>
+        <div id="qr-code-container">
+            <a id="qr-code-download" download="qrcode.png"></a>
+        </div>
+        <br><br>
+        <button id="download-button"></button>
+    </div>
+</div>
+    <script>
+
+
+      const form = document.querySelector("#myForm");
+      const qrCodeContainer = document.querySelector("#qr-code-container");
+      let qrCode;
+      const shortenedUrlContainer = document.querySelector("#shortened-url");
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const name = sanitizeInput(document.querySelector("#name").value);
+        const job = sanitizeInput(document.querySelector("#job").value);
+        const phone = sanitizeInput(document.querySelector("#phone").value);
+        const email = sanitizeInput(document.querySelector("#email").value);
+        const social1 = sanitizeInput(document.querySelector("#social1").value);
+        const social2 = sanitizeInput(document.querySelector("#social2").value);
+        const social3 = sanitizeInput(document.querySelector("#social3").value);
+        const social4 = sanitizeInput(document.querySelector("#social4").value);
+        const social1Label = sanitizeInput(document.querySelector("#social1-label").value);
+        const social2Label = sanitizeInput(document.querySelector("#social2-label").value);
+        const social3Label = sanitizeInput(document.querySelector("#social3-label").value);
+        const social4Label = sanitizeInput(document.querySelector("#social4-label").value);
+
+        const url = `https://digitalbizcard.netlify.app/dynamic?name=${encodeURIComponent(
+          name
+        )}&job=${encodeURIComponent(job)}&phone=${encodeURIComponent(
+          phone
+        )}&email=${encodeURIComponent(email)}&social1=${encodeURIComponent(
+          social1
+        )}&social2=${encodeURIComponent(social2)}&social3=${encodeURIComponent(
+          social3
+        )}&social4=${encodeURIComponent(social4)}&social1Label=${encodeURIComponent(
+          social1Label
+        )}&social2Label=${encodeURIComponent(social2Label)}&social3Label=${encodeURIComponent(
+          social3Label
+        )}&social4Label=${encodeURIComponent(social4Label)}`;
+
+        // construct the shortened URL using the TinyURL API
+        const request = new XMLHttpRequest();
+        const apiKey = "NfBP0XPUiDueC0t3sjp1TfGzipm5JnkuQm7q9xdYCiXyBUASQptQwyYOstkq";
+        const urlToShorten = encodeURIComponent(url);
+        const apiUrl = `https://tinyurl.com/api-create.php?url=${urlToShorten}&apikey=${apiKey}`;
+
+       request.open("GET", apiUrl);
+        request.onload = function () {
+          if (request.status === 200) {
+            const shortenedUrl = request.responseText;
+            // create the QR code using the shortened URL
+            const qrCode = new QRious({
+              value: shortenedUrl,
+              size: 256,
+              foreground: "black",
+              background: "white",
+              level: "H",
+              padding: null,
+            });
+
+    // create a new image element and set its src to the QR code data URL
+    const img = new Image();
+    img.src = qrCode.toDataURL();
+
+    // append the image element to the container element
+    qrCodeContainer.appendChild(img);
+
+    // display the shortened URL
+  } else {
+    shortenedUrlContainer.innerHTML += "Error: Unable to shorten URL";
+  }
+  document.querySelector(".stuff").style.display = "flex";
+};
+
+        request.send();
+        const qrCodeImage = qrCodeContainer.querySelector("img");
+
+qrCodeImage.addEventListener("contextmenu", function(event) {
+  event.preventDefault();
+
+  const imageUrl = qrCodeImage.src;
+  const link = document.createElement("a");
+  link.download = "qrcode.png";
+  link.href = imageUrl;
+  link.click();
+});
+
+const downloadButton = document.getElementById("download-button");
+downloadButton.addEventListener("click", function() {
+  const link = document.createElement("a");
+  link.download = "qrcode.png";
+  link.href = qrCode.toDataURL();
+  link.click();
+});
+
+        function sanitizeInput(input) {
+          return DOMPurify.sanitize(input);
+        }
+      });
+
+
+
+
+// rest of your code
+
+function downloadQRCode() {
+  const qrCodeImage = document.querySelector("#qr-code-container img");
+  const imageUrl = qrCodeImage.src;
+  const link = document.createElement("a");
+  link.download = "qrcode.png";
+  link.href = imageUrl;
+  link.click();
+}
+
+const downloadButton = document.getElementById("download-button");
+downloadButton.addEventListener("click", downloadQRCode);
+
+
+
+
+
+
+    </script>
+
+</body>
+</html>
